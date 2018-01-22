@@ -1,0 +1,17 @@
+.ng-valid[required], .ng-valid.required {
+	border-left: 5px solid #42A948; /* green */
+}
+
+.ng-invalid:not(form) {
+	border-left: 5px solid #a94442; /* red */
+}
+
+.canvas-data {
+	margin-top: 60px;
+}
+
+@media screen and (min-device-width: 768px) {
+	.canvas-data input {
+		width: 135px;
+	}
+}
