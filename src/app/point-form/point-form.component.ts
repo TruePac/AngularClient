@@ -4,7 +4,7 @@ import { ViewChild, ElementRef } from '@angular/core'
 import { AlertService } from '../_services/index';
 import { PointService } from './point.service';
 
-import {Point} from './point-form.point.interface';
+import {Point} from './point';
 
 @Component({
     selector: 'point-form',
@@ -16,10 +16,12 @@ export class PointFormComponent implements OnInit {
     @ViewChild('canvas') canvasRef: ElementRef;
     public point: Point;
     points: Point[];
+    statusCode: number;
+    requestProcessing = false;
     ctx: CanvasRenderingContext2D;
     event: MouseEvent;
 
-    public xValues = [
+    public xs = [
         { value: -3, display: '-3' },
         { value: -2, display: '-2' },
         { value: -1, display: '-1' },
@@ -31,7 +33,7 @@ export class PointFormComponent implements OnInit {
         { value: 5, display: '5' }
     ];
 
-    public rValues = [
+    public rs = [
         { value: -3, display: '-3' },
         { value: -2, display: '-2' },
         { value: -1, display: '-1' },
@@ -45,11 +47,13 @@ export class PointFormComponent implements OnInit {
 
     constructor(private alertService: AlertService, private pointService: PointService) { }
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.getPoints();
         this.point = {
-            xValue: null,
-            rValue: 0
+            x: null,
+            y: null,
+            r: 0,
+            hit: null
         }
     }
 
@@ -65,11 +69,11 @@ export class PointFormComponent implements OnInit {
         let canvas_height = this.canvasRef.nativeElement.height;
         let grid_size = 320;
         if (this.canvasRef != null) {
-            if (this.point.rValue < 0) {
+            if (this.point.r < 0) {
                 this.alertService.error("R must be >= 0");
                 return null;
             }
-            let r1 = this.point.rValue * 32;
+            let r1 = this.point.r * 32;
             let x0 = 160;
             let y0 = 160;
 
@@ -89,7 +93,7 @@ export class PointFormComponent implements OnInit {
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.rect(x0, y0, r1/2, r1);
+            ctx.rect(x0, y0, r1 / 2, r1);
             ctx.fillStyle = "#66ccff"
             ctx.fill();
             ctx.stroke();
@@ -115,7 +119,7 @@ export class PointFormComponent implements OnInit {
         }
 
     }
-    
+
     drawOnClick(event: MouseEvent): void {
         var ctx = this.ctx;
         if (this.canvasRef != null) {
@@ -130,13 +134,22 @@ export class PointFormComponent implements OnInit {
                 y = -(clientY - 160) * 5 / 160;
             } else
                 y = (160 - clientY) * 5 / 160;
+            if (y < -5 || y > 3) {
+                this.alertService.error("Y must be between -5 and 3");
+            }
             this.drawPoint(clientX, clientY, "blue");
-            this.point.xValue = x;
-            this.point.yValue = y;
-            
+            this.point.x = x;
+            this.point.y = y;
+            let point = new Point(this.point.x, this.point.y, this.point.r, this.point.hit);
+            this.pointService.addPoint(point)
+                .subscribe(successCode => {
+                    this.statusCode = successCode;
+                    this.getPoints();
+                },
+                errorCode => this.statusCode = errorCode);
         }
     }
-    
+
     drawPoint(x, y, color) {
         var ctx = this.ctx;
         ctx.fillStyle = color;
@@ -144,13 +157,56 @@ export class PointFormComponent implements OnInit {
         ctx.arc(x, y, 2, 0, 2 * Math.PI);
         ctx.fill();
     }
-    
-    getPoints(): void {
-        this.pointService.getPoints()
-            .subscribe(points => this.points = points);
+
+    drawPoints() {
+        for (let i = 0; i < this.points.length; i++) {
+            let point = this.points[i];
+            let posx = Math.round(point.x * 160 / 5 + 160);
+            let posy = Math.round(-point.y * 160 / 5 + 160);
+            if (point.hit) {
+                this.drawPoint(posx, posy, "green");
+            } else {
+                this.drawPoint(posx, posy, "red");
+            }
+        }
     }
 
+    getPoints(): void {
+        this.pointService.getPoints()
+            .subscribe(
+            data => {
+                this.points = data;
+                this.drawPoints();
+            },
+            errorCode => this.statusCode = errorCode);
+    }
 
-    getCurrentPoint() { return JSON.stringify(this.point); }
+    onPointSubmit() {
+        this.preProcessConfigurations();
+        //Handle create article
+        let point = new Point(this.point.x, this.point.y, this.point.r, this.point.hit);
+        this.pointService.addPoint(point)
+            .subscribe(successCode => {
+                this.statusCode = successCode;
+                this.getPoints();
+            },
+            errorCode => this.statusCode = errorCode);
+    }
+
+    //Perform preliminary processing configurations
+    preProcessConfigurations() {
+        this.statusCode = null;
+        this.requestProcessing = true;
+    }
+
+    deleteAll() {
+        this.preProcessConfigurations();
+        this.pointService.deleteAll()
+            .subscribe(successCode => {
+                this.statusCode = successCode;
+                this.getPoints();
+            },
+            errorCode => this.statusCode = errorCode);
+    }
 
 }

@@ -1,0 +1,86 @@
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<td>
+			<form class="pure-form pure-form-stacked" #bookForm="ngForm"
+				(ngSubmit)="onPointSubmit()">
+				<div class="form-group">
+					<fieldset>
+						<div class="pure-control-group">
+							<label for="x">Enter the x value of a point:</label> <select
+								name="x" [(ngModel)]="point.x" required>
+								<option *ngFor="let x of xs" [value]="x.value">
+									{{x.display}}</option>
+							</select>
+						</div>
+						<div class="pure-control-group">
+							<label for="y">Enter the y value of a point:</label> <input
+								type="number" id="y" name="y" [(ngModel)]="point.y" required
+								min="-5" max="3" #y="ngModel">
+							<div *ngIf="y.errors && (y.dirty || y.touched)"
+								class="alert alert-danger">
+								<div [hidden]="!y.errors.required">y value is required!</div>
+								<div [hidden]="!y.errors.min">y value must be more than
+									-5.</div>
+								<div [hidden]="!y.errors.max">y value must be less than 3.</div>
+							</div>
+						</div>
+						<div class="pure-control-group">
+							<label for="r">Enter the r value of a point:</label> <select
+								name="r" [(ngModel)]="point.r" #rSelector="ngModel"
+								(change)="draw_graph(); drawPoints()" required pattern="[0-9]*"
+								[min]="0">
+								<option *ngFor="let r of rs" [value]="r.value">
+									{{r.display}}</option>
+							</select>
+						</div>
+					</fieldset>
+					<button type="submit" class="btn btn-control"
+						[disabled]="!bookForm.form.valid">Submit</button>
+					<button type="button" class="btn btn-control"
+						(click)="deleteAll(); draw_graph()">Delete all points</button>
+				</div>
+			</form>
+		</td>
+		<td>
+			<div class="row">
+				<div class="col-md-5 col-sm-5 col-xs-12">
+					<alert></alert>
+					</div>
+			</div>
+					<canvas
+						style="margin: 0; padding: 0; position: relative; top: 50px; border: 1px solid #000000;"
+						#canvas on-click="drawOnClick($event)" width="320" height="320"></canvas>
+					<form class="form-inline canvas-data">
+						<div class="form-group">
+							<label for="xCanvas">X:</label> <input type="number"
+								value={{point.x}} class="form-control" id="xCanvas"
+								[attr.disabled]="disabled?'':null" min="-5" max="3">
+						</div>
+						<div class="form-group">
+							<label for="yCanvas">Y:</label> <input type="number"
+								value={{point.y}} class="form-control" id="yCanvas"
+								[attr.disabled]="disabled?'':null" min="-3" max="5">
+						</div>
+					</form>
+				
+		</td>
+	</tr>
+	<tr>
+		<table>
+			<tr>
+				<th>X</th>
+				<th>Y</th>
+				<th>R</th>
+				<th>Hit</th>
+			</tr>
+			<tr *ngFor="let point of points">
+				<td>{{point.x}}</td>
+				<td>{{point.y}}</td>
+				<td>{{point.r}}</td>
+				<td>{{point.hit}}</td>
+			</tr>
+		</table>
+	</tr>
+</table>
+

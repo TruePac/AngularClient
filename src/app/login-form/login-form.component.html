@@ -1,13 +1,11 @@
 <div class="container">
 	<h1>Log In</h1>
-	
 	<alert></alert>
-	
 	<form class="pure-form pure-form-aligned" #loginForm="ngForm" (ngSubmit)="login()">
     <fieldset>
         <div class="pure-control-group">
             <label for="name">Username</label>
-            <input id="name" type="text" placeholder="Username" required [(ngModel)]="model.username" name="username">
+            <input id="name" type="text" placeholder="Username" required pattern="[0-9]*" [(ngModel)]="model.id" name="username">
             <span class="pure-form-message-inline">This is a required field.</span>
         </div>
 
@@ -16,14 +14,9 @@
             <input id="password" type="password" placeholder="Password" required [(ngModel)]="model.password" name="password">
             <span class="pure-form-message-inline">This is a required field.</span>
         </div>
-        
-        <div class="pure-control-group">
-            <label for="password-confirm">Confirm password</label>
-            <input id="password-confirm" type="password" placeholder="Password" required [(ngModel)]="model.passwordConfirm" name="password-confirm">
-            <span class="pure-form-message-inline">This is a required field.</span>
-        </div>
       
-		<button type="button" [disabled]="!loginForm.form.valid" class="pure-button pure-button-primary" (click)="signUp()">Sign Up</button>
+		<button type="submit" [disabled]="!loginForm.form.valid" class="pure-button pure-button-primary">Log In</button>
+		<button type="button" class="pure-button pure-button-primary" (click)="signUp()">Sign Up</button>
 	
 		</fieldset>
 		</form>
